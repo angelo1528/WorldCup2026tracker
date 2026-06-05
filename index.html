@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>World Cup 2026 Tracker</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+
+    <nav>
+      <span class="nav-logo"> WC 2026</span>
+<div class="nav-links">
+  <a href="index.html">Dashboard</a>
+  <a href="standings.html">Standings</a>
+  <a href="players.html">Players</a>
+</div>
+      
+    </nav>
+
+<main>
+  <h1>Right Now</h1>
+  <div id="matches-grid"></div>
+
+  <h1>Coming Up</h1>
+  <div id="upcoming-grid"></div>
+</main>
+
+    <div id="match-detail" style="display:none;">
+      <button id="back-btn">← Back</button>
+      <div id="match-score"></div>
+      <div id="lineups"></div>
+      <div id="stats"></div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
