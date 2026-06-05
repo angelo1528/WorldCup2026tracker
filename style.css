@@ -564,3 +564,122 @@ main h1 {
   color: #c9a84c;
   font-weight: 600;
 }
+
+@media (max-width: 768px) {
+
+  nav {
+    padding: 0.75rem 1rem;
+  }
+
+  .nav-logo {
+    font-size: 1.1rem;
+  }
+
+  .nav-links {
+    gap: 1rem;
+  }
+
+  .nav-links a {
+    font-size: 0.8rem;
+  }
+
+  main {
+    padding: 1rem;
+  }
+
+  main h1 {
+    font-size: 1.8rem;
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+
+  #matches-grid {
+    grid-template-columns: 1fr;
+    padding: 0 0 1rem;
+  }
+
+  #upcoming-grid {
+    grid-template-columns: 1fr;
+    padding: 0 0 1rem;
+  }
+
+  #standings-grid {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .match-card {
+    padding: 1rem;
+  }
+
+  .team {
+    font-size: 0.95rem;
+  }
+
+  .score {
+    font-size: 1.5rem;
+    padding: 0 0.5rem;
+  }
+
+  #match-detail {
+    padding: 1rem;
+  }
+
+  .lineup-section {
+    padding: 1rem;
+  }
+
+  #stats table {
+    font-size: 0.75rem;
+  }
+
+  #stats th,
+  #stats td {
+    padding: 0.5rem 0.5rem;
+  }
+
+  #search-section {
+    flex-direction: column;
+  }
+
+  #search-btn {
+    width: 100%;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-stats {
+    gap: 0.5rem;
+  }
+
+  .stat-box {
+    padding: 0.75rem 0.5rem;
+    min-width: 60px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .group-card {
+    padding: 1rem;
+  }
+
+  .group-card table {
+    font-size: 0.75rem;
+  }
+
+  .group-card th,
+  .group-card td {
+    padding: 0.35rem 0.3rem;
+  }
+
+  .match-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
