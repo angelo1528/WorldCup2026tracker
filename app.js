@@ -9,7 +9,7 @@ async function loadMatches() {
 
   try {
     const data = await fetchData("/.netlify/functions/getLive");
-    const matches = data.matches || [];
+    const matches = data.data || [];
 
     if (matches.length === 0) {
       matchesGrid.innerHTML = "<p>No live matches right now.</p>";
