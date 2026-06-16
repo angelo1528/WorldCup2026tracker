@@ -1,0 +1,9 @@
+{
+  "name": "worldcup2026tracker",
+  "version": "1.0.0",
+  "description": "World Cup 2026 tracker",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
