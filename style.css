@@ -683,3 +683,131 @@ main h1 {
     gap: 0.25rem;
   }
 }
+
+/* ===== Results section ===== */
+#results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 0 2rem 2rem;
+}
+
+#results-grid p {
+  color: #888;
+}
+
+.match-card.result {
+  cursor: pointer;
+}
+
+.match-card.result:hover {
+  transform: translateY(-4px);
+  border-color: #c9a84c;
+}
+
+.match-card.result .score {
+  color: #f0f0f0;
+}
+
+/* ===== Section action (Show more button) ===== */
+.section-action {
+  padding: 0 2rem 2rem;
+}
+
+#upcoming-toggle {
+  background: transparent;
+  border: 1px solid #333;
+  color: #c9a84c;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+#upcoming-toggle:hover {
+  border-color: #c9a84c;
+  background: rgba(201, 168, 76, 0.1);
+}
+
+/* ===== Match detail score header ===== */
+.detail-score {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.detail-score .team {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex: 0 1 auto;
+}
+
+.detail-score .score {
+  font-size: 2.5rem;
+}
+
+/* ===== Lineup player rows (rating + MOTM) ===== */
+.lineup-section ul li .p-name {
+  flex: 1;
+}
+
+.lineup-section ul li .p-rating {
+  color: #c9a84c;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.lineup-section ul li .p-motm {
+  color: #c9a84c;
+  font-size: 0.75rem;
+}
+
+/* ===== Match stats table (home | stat | away) ===== */
+.match-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #1a1a1a;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.match-stats-table th {
+  background: #111;
+  color: #c9a84c;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+
+.match-stats-table td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #2a2a2a;
+  font-size: 0.9rem;
+}
+
+.match-stats-table .stat-home,
+.match-stats-table .stat-away {
+  text-align: center;
+  font-weight: 600;
+  color: #f0f0f0;
+  width: 25%;
+}
+
+.match-stats-table .stat-name {
+  text-align: center;
+  color: #888;
+  font-size: 0.82rem;
+}

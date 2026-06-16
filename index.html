@@ -10,21 +10,26 @@
 
     <nav>
       <span class="nav-logo"> WC 2026</span>
-<div class="nav-links">
-  <a href="index.html">Dashboard</a>
-  <a href="standings.html">Standings</a>
-  <a href="players.html">Players</a>
-</div>
-      
+      <div class="nav-links">
+        <a href="index.html" class="active">Dashboard</a>
+        <a href="standings.html">Standings</a>
+        <a href="players.html">Players</a>
+      </div>
     </nav>
 
-<main>
-  <h1>Right Now</h1>
-  <div id="matches-grid"></div>
+    <main>
+      <h1>Right Now</h1>
+      <div id="matches-grid"></div>
 
-  <h1>Coming Up</h1>
-  <div id="upcoming-grid"></div>
-</main>
+      <h1>Coming Up</h1>
+      <div id="upcoming-grid"></div>
+      <div class="section-action">
+        <button id="upcoming-toggle" style="display:none;">Show more</button>
+      </div>
+
+      <h1>Results</h1>
+      <div id="results-grid"></div>
+    </main>
 
     <div id="match-detail" style="display:none;">
       <button id="back-btn">← Back</button>
@@ -33,6 +38,7 @@
       <div id="stats"></div>
     </div>
 
+    <script src="squads.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
