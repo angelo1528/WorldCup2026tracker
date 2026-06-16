@@ -8,6 +8,9 @@ A real-time FIFA World Cup 2026 tracking web app built with vanilla HTML, CSS, a
 ##demo
 <img width="947" height="434" alt="image" src="https://github.com/user-attachments/assets/082855e8-db1f-4877-b6ba-bd54833babc7" />
 <img width="941" height="438" alt="image" src="https://github.com/user-attachments/assets/d7d62e98-c7f9-434f-b5b3-4ec249a319ee" />
+shows past match results;
+<img width="944" height="445" alt="image" src="https://github.com/user-attachments/assets/bf209fc0-b889-4675-ad1b-bc31f93e6b89" />
+
 
 ## Features
 
@@ -37,7 +40,9 @@ A real-time FIFA World Cup 2026 tracking web app built with vanilla HTML, CSS, a
 
 - **Dashboard** — Live matches and upcoming fixtures
 - **Standings** — Group stage table for all 12 groups
-- **Players** — Search any World Cup player by name, country or club
+- **Players** — Search any World Cup player by name, country or club, contains a standouts section; a collection of the best performing players over the last round.
+- <img width="959" height="437" alt="image" src="https://github.com/user-attachments/assets/8e7fbb6c-9d55-4e88-a0e3-b1d5de35efe3" />
+
 
 ---
 
