@@ -30,8 +30,9 @@ exports.handler = async function (event, context) {
       };
     }
   } catch (e) {
-    store = null;
-  }
+  console.log("BLOBS ERROR:", e.name, "|", e.message);
+  store = null;
+}
 
   try {
     const response = await fetch(
