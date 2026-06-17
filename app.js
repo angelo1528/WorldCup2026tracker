@@ -70,19 +70,15 @@ async function loadMatches() {
     const data = await fetchData("/.netlify/functions/getLive");
     const liveMatches = data.data || [];
 
-    // The live feed is unreliable — it sometimes returns a match that's
-    // already finished. Trust the match list: drop any "live" match whose
-    // matchId is marked finished, and require a real in-play signal.
+    // The live feed (/wc/live) only returns matches it considers in-play,
+    // so trust it. Early in a match `minute`, `scoreHome`, `scoreAway` are
+    // still null and `status` can be 0 — that does NOT mean it isn't live.
+    // Only drop entries our own schedule explicitly marks finished (stale).
     const playing = liveMatches.filter(m => {
       if (!m || !m.matchId) return false;
       const meta = MATCH_LOOKUP[m.matchId];
-      if (meta && meta.statusText === "finished") return false; // stale
-      const inPlay =
-        m.minute != null ||
-        m.scoreHome != null ||
-        m.scoreAway != null ||
-        m.status === 2;
-      return inPlay;
+      if (meta && meta.statusText === "finished") return false; // stale/finished
+      return true;
     });
 
     if (playing.length === 0) {
@@ -96,7 +92,10 @@ async function loadMatches() {
       const { home, away } = await resolveLiveTeams(live);
       const hScore = live.scoreHome ?? 0;
       const aScore = live.scoreAway ?? 0;
-      const clock = live.minute ? `${live.minute}'` : "LIVE";
+      const clock =
+        live.minute ? `${live.minute}'` :
+        live.status === 0 ? "Starting soon" :
+        "LIVE";
 
       const card = document.createElement("div");
       card.className = "match-card";
