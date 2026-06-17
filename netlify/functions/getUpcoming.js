@@ -19,7 +19,7 @@ exports.handler = async function (event, context) {
   name: "wc-schedule",
   consistency: "strong",
   siteID: process.env.BLOBS_SITE_ID,
-  token: process.env.BLOBS_TOKEN
+  token: process.env.BLOBS_KEY
 });
     const cached = await store.get("draw-group", { type: "json" });
     if (cached && cached.cachedAt && (Date.now() - cached.cachedAt) < SCHEDULE_TTL_MS) {
