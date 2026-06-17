@@ -253,6 +253,9 @@ async function loadResults() {
 
 // ============================================================
 //  MATCH DETAIL  — real lineup + team-stats shapes
+//  Section order: score -> match stats -> lineups.
+//  Stats sit above the starting XI so the live numbers are the
+//  first thing seen when opening a match.
 // ============================================================
 async function loadMatchDetail(matchId, matchMeta) {
   document.querySelector("main").style.display = "none";
@@ -270,8 +273,9 @@ async function loadMatchDetail(matchId, matchMeta) {
     `;
   }
 
-  document.getElementById("lineups").innerHTML = "<p style='color:#888;'>Loading lineup...</p>";
-  document.getElementById("stats").innerHTML = "";
+  // Stats first (above), lineups second (below).
+  document.getElementById("stats").innerHTML = "<p style='color:#888;'>Loading match stats...</p>";
+  document.getElementById("lineups").innerHTML = "";
 
   try {
     const [lineupData, statsData] = await Promise.all([
@@ -279,10 +283,11 @@ async function loadMatchDetail(matchId, matchMeta) {
       fetchData(`/.netlify/functions/getStats?matchId=${matchId}`)
     ]);
 
-    renderLineups(lineupData, matchMeta);
+    // Render stats before lineups so the live match stats lead.
     renderStats(statsData, matchMeta);
+    renderLineups(lineupData, matchMeta);
   } catch (error) {
-    document.getElementById("lineups").innerHTML = "<p style='color:#888;'>Couldn't load match detail.</p>";
+    document.getElementById("stats").innerHTML = "<p style='color:#888;'>Couldn't load match detail.</p>";
     console.log(error);
   }
 }

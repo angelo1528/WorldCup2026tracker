@@ -1,11 +1,7 @@
-const { getStore } = require("@netlify/blobs");
-
-// Live scores change constantly, but a short 60s cache collapses all
-// concurrent viewers during a match into ~1 API call per minute. This
-// is the call that previously had NO cache and is the most-hit endpoint
-// (app.js polls it every 5 min per open tab), so it's the biggest
-// protection against hitting the provider's rate limit.
-const LIVE_TTL_MS = 60 * 1000; // 60 seconds
+// Live scores change minute-to-minute during a match, so this endpoint
+// is intentionally NOT cached. Every request fetches fresh from the API
+// to guarantee real-time score and event updates. The cache-control
+// header below also stops the browser/CDN from holding onto a stale copy.
 
 exports.handler = async function (event, context) {
   if (!process.env.API_KEY) {
@@ -16,27 +12,6 @@ exports.handler = async function (event, context) {
   const allowed = !origin || origin.includes("netlify.app") || origin.includes("localhost");
   if (!allowed) {
     return { statusCode: 403, body: JSON.stringify({ error: "Forbidden" }) };
-  }
-
-  // ---- cache with short TTL ----
-  let store;
-  try {
-    store = getStore({
-      name: "wc-live",
-      consistency: "strong",
-      siteID: process.env.BLOBS_SITE_ID,
-      token: process.env.BLOBS_KEY
-    });
-    const cached = await store.get("live", { type: "json" });
-    if (cached && cached.cachedAt && (Date.now() - cached.cachedAt) < LIVE_TTL_MS) {
-      return {
-        statusCode: 200,
-        headers: { "X-Cache": "HIT" },
-        body: JSON.stringify(cached.payload)
-      };
-    }
-  } catch (e) {
-    store = null;
   }
 
   try {
@@ -51,15 +26,12 @@ exports.handler = async function (event, context) {
     );
     const data = await response.json();
 
-    if (store && data && data.success) {
-      try {
-        await store.setJSON("live", { cachedAt: Date.now(), payload: data });
-      } catch (e) { /* ignore cache write errors */ }
-    }
-
     return {
       statusCode: 200,
-      headers: { "X-Cache": "MISS" },
+      headers: {
+        "X-Cache": "BYPASS",
+        "Cache-Control": "no-store, max-age=0"
+      },
       body: JSON.stringify(data)
     };
   } catch (error) {
