@@ -15,7 +15,12 @@ exports.handler = async function (event, context) {
 
   let store;
   try {
-    store = getStore({ name: "wc-standings", consistency: "strong" });
+    store = getStore({
+      name: "wc-standings",
+      consistency: "strong",
+      siteID: process.env.BLOBS_SITE_ID,
+      token: process.env.BLOBS_KEY
+    });
     const cached = await store.get("standings", { type: "json" });
     if (cached && cached.cachedAt && (Date.now() - cached.cachedAt) < STANDINGS_TTL_MS) {
       return {

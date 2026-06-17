@@ -19,7 +19,12 @@ exports.handler = async function (event, context) {
   // ---- cache: lineups for a given match never change once played ----
   let store;
   try {
-    store = getStore({ name: "wc-lineups", consistency: "strong" });
+    store = getStore({
+      name: "wc-lineups",
+      consistency: "strong",
+      siteID: process.env.BLOBS_SITE_ID,
+      token: process.env.BLOBS_KEY
+    });
     const cached = await store.get(matchId, { type: "json" });
     if (cached) {
       return {

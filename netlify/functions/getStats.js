@@ -19,7 +19,12 @@ exports.handler = async function (event, context) {
   // ---- cache: match stats are final once the match has ended ----
   let store;
   try {
-    store = getStore({ name: "wc-stats", consistency: "strong" });
+    store = getStore({
+      name: "wc-stats",
+      consistency: "strong",
+      siteID: process.env.BLOBS_SITE_ID,
+      token: process.env.BLOBS_KEY
+    });
     const cached = await store.get(matchId, { type: "json" });
     if (cached) {
       return {

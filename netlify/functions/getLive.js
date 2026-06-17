@@ -21,7 +21,12 @@ exports.handler = async function (event, context) {
   // ---- cache with short TTL ----
   let store;
   try {
-    store = getStore({ name: "wc-live", consistency: "strong" });
+    store = getStore({
+      name: "wc-live",
+      consistency: "strong",
+      siteID: process.env.BLOBS_SITE_ID,
+      token: process.env.BLOBS_KEY
+    });
     const cached = await store.get("live", { type: "json" });
     if (cached && cached.cachedAt && (Date.now() - cached.cachedAt) < LIVE_TTL_MS) {
       return {
