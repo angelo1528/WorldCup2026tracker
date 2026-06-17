@@ -1,8 +1,5 @@
 const { getStore } = require("@netlify/blobs");
 
-// How long to trust a cached schedule before refetching (milliseconds).
-// The schedule changes slowly (matches flip to finished, matchIds get
-// assigned), so a short cache saves most calls while staying fresh.
 const SCHEDULE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 exports.handler = async function (event, context) {
@@ -16,7 +13,6 @@ exports.handler = async function (event, context) {
     return { statusCode: 403, body: JSON.stringify({ error: "Forbidden" }) };
   }
 
-  // ---- cache with TTL: schedule changes slowly ----
   let store;
   try {
     store = getStore({ name: "wc-schedule", consistency: "strong" });
@@ -52,7 +48,11 @@ exports.handler = async function (event, context) {
 
     return {
       statusCode: 200,
-      headers: { "X-Cache": "MISS" },
+      headers: {
+        "X-Cache": "MISS",
+        "X-Debug-Store": store ? "ok" : "null",
+        "X-Debug-Success": String(data && data.success)
+      },
       body: JSON.stringify(data)
     };
   } catch (error) {
