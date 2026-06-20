@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Round of 32 — as it stands</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #161922;
+    --panel-2: #1d212c;
+    --line: #2b3040;
+    --ink: #e8eaf0;
+    --ink-dim: #9aa0b0;
+    --ink-faint: #646b7e;
+    --gold: #d8b65a;
+    --settled: #3a7d5c;
+    --pending: #4a5168;
+    --win-accent: #2f6fb0;
+    --third-accent: #8a6db8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 20px 56px; }
+
+  /* ---- Header ---- */
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+  .head h1 {
+    font-size: 13px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-dim); font-weight: 600; margin: 0;
+  }
+  .head .big {
+    font-size: 30px; font-weight: 800; letter-spacing: -.01em; margin: 2px 0 0;
+    line-height: 1.05;
+  }
+  .status {
+    font-size: 12px; color: var(--ink-dim); display: flex; align-items: center; gap: 8px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pending); }
+  .status.locked .dot { background: var(--settled); }
+  .status.error .dot { background: #b0504a; }
+  .status.error { color: #c97b75; }
+  .legend { display: flex; gap: 14px; margin: 14px 0 26px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-dim); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .sw-win { background: var(--win-accent); }
+  .sw-third { background: var(--third-accent); }
+  .sw-pending { background: var(--pending); }
+
+  /* ---- Bracket grid ---- */
+  .bracket {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 48px;
+  }
+  .col h2 {
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600; margin: 0 0 12px;
+  }
+
+  .tie {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+  .tie::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--win-accent);
+  }
+  .tie.has-third::before { background: var(--third-accent); }
+
+  .tie-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px; border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .tie-no { font-size: 10.5px; letter-spacing: .08em; color: var(--ink-faint); font-weight: 600; }
+  .tie-venue { font-size: 10.5px; color: var(--ink-faint); }
+
+  .team {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+  }
+  .team + .team { border-top: 1px solid var(--line); }
+
+  .seed {
+    flex: 0 0 auto; min-width: 30px;
+    font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    color: var(--ink-faint);
+    background: #11141c; border: 1px solid var(--line);
+    border-radius: 4px; padding: 3px 5px; text-align: center;
+  }
+  .team.settled .seed { color: var(--win-accent); border-color: #25405e; }
+  .team.third .seed { color: var(--third-accent); border-color: #3c3155; }
+
+  .name { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; }
+  .name.placeholder { color: var(--ink-faint); font-weight: 500; font-style: italic; }
+
+  .qual {
+    font-size: 10px; color: var(--settled); flex: 0 0 auto;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .qual::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--settled); }
+
+  /* ---- Third-place tracker ---- */
+  .thirds {
+    margin-top: 40px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px 22px;
+  }
+  .thirds h2 {
+    font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-dim); margin: 0 0 4px; font-weight: 600;
+  }
+  .thirds p.sub { margin: 0 0 16px; font-size: 12.5px; color: var(--ink-faint); }
+  .trow {
+    display: grid; grid-template-columns: 26px 1fr auto auto auto;
+    gap: 12px; align-items: center;
+    padding: 8px 10px; border-radius: 7px; font-size: 13px;
+  }
+  .trow.in { background: #14241c; }
+  .trow.cut { opacity: .55; }
+  .trow .rk { color: var(--ink-faint); font-size: 11px; font-weight: 700; }
+  .trow .tm { font-weight: 600; }
+  .trow .gp { color: var(--ink-faint); font-size: 11px; }
+  .trow .stat { color: var(--ink-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .cutline { height: 1px; background: repeating-linear-gradient(90deg, var(--settled) 0 8px, transparent 8px 16px); margin: 6px 0; }
+
+  @media (max-width: 760px) {
+    .bracket { grid-template-columns: 1fr; gap: 8px; }
+    .head .big { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div>
+      <h1>FIFA World Cup 2026</h1>
+      <p class="big">Round of 32 — as it stands</p>
+    </div>
+    <div class="status" id="status">
+      <span class="dot"></span><span id="statusText">Provisional — bracket locks when groups finish</span>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i class="swatch sw-win"></i>Group winner / runner-up</span>
+    <span><i class="swatch sw-third"></i>Best third place</span>
+    <span><i class="swatch sw-pending"></i>Not yet decided</span>
+  </div>
+
+  <div class="bracket">
+    <div class="col" id="colL"><h2>Left half · Matches 73–82, 88</h2></div>
+    <div class="col" id="colR"><h2>Right half · Matches 76, 79–87</h2></div>
+  </div>
+
+  <div class="thirds" id="thirds">
+    <h2>Third-place race</h2>
+    <p class="sub">Top eight qualify, ranked by points, then goal difference, then goals scored.</p>
+    <div id="thirdsBody"></div>
+  </div>
+</div>
+
+<script>
+/*
+ * bracket.js — Round of 32 "as it stands" engine for the 2026 World Cup.
+ *
+ * Reads live standings, computes each group's 1st/2nd, ranks the twelve
+ * third-place teams, takes the best eight, and places them into the exact
+ * Round of 32 slots using FIFA's Annex C combination table (all 495 rows,
+ * verified complete). This is the same deterministic method broadcasters use.
+ *
+ * ── THE ONLY THING YOU CUSTOMISE ──────────────────────────────────────────
+ * adaptStandings() below converts YOUR standings feed into the shape this
+ * engine expects. Point it at your real field names once and you are done.
+ * ───────────────────────────────────────────────────────────────────────────
+ */
+
+(function (global) {
+  "use strict";
+
+  // ===========================================================================
+  // 1. ADAPTER — edit this to match your standings data, nothing else.
+  // ===========================================================================
+  //
+  // Engine expects an array of 12 groups, each:
+  //   { group: "A", teams: [ { name, played, pts, gd, gf }, ... ] }
+  // teams may be in any order; the engine sorts them.
+  //
+  // `raw` is whatever your getStandings function / standings.js produces.
+  function adaptStandings(raw) {
+    // Your getStandings returns:
+    //   { data: { groups: { A: [ {team, flag, played, won, drawn, lost,
+    //                              gf, ga, gd, points}, ... ], B: [...], ... } } }
+    // so the group letter is the key and the team name is `team.team`.
+    var groupsObj =
+      (raw && raw.data && raw.data.groups) ||
+      (raw && raw.groups) ||
+      null;
+
+    if (groupsObj && !Array.isArray(groupsObj)) {
+      return Object.keys(groupsObj).map(function (letter) {
+        return {
+          group: letter,
+          teams: (groupsObj[letter] || []).map(function (t) {
+            return {
+              name: t.team,
+              played: t.played,
+              pts: t.points,
+              gd: t.gd,
+              gf: t.gf
+            };
+          })
+        };
+      });
+    }
+
+    // Fallback: already in engine shape.
+    if (Array.isArray(raw) && raw.length && raw[0].teams) return raw;
+
+    throw new Error(
+      "adaptStandings: unrecognised standings shape — check getStandings output."
+    );
+  }
+
+  // ===========================================================================
+  // 2. FIXED STRUCTURE — the 16 Round of 32 pairings (Matches 73–88).
+  //    Slot codes: 1X = winner of group X, 2X = runner-up, 3? = a third-place
+  //    team resolved via Annex C. "3:ABCDF" = best third from that group set.
+  // ===========================================================================
+  var MATCHES = [
+    { m: 73, side: "L", a: "2A",        b: "2B" },
+    { m: 74, side: "L", a: "1E",        b: "3:ABCDF" },
+    { m: 75, side: "L", a: "1F",        b: "2C" },
+    { m: 76, side: "R", a: "1C",        b: "2F" },
+    { m: 77, side: "L", a: "1I",        b: "3:CDFGH" },
+    { m: 78, side: "L", a: "2E",        b: "2I" },
+    { m: 79, side: "R", a: "1A",        b: "3:CEFHI" },
+    { m: 80, side: "R", a: "1L",        b: "3:EHIJK" },
+    { m: 81, side: "L", a: "1D",        b: "3:BEFIJ" },
+    { m: 82, side: "L", a: "1G",        b: "3:AEHIJ" },
+    { m: 83, side: "R", a: "2K",        b: "2L" },
+    { m: 84, side: "R", a: "1H",        b: "2J" },
+    { m: 85, side: "R", a: "1B",        b: "3:EFGIJ" },
+    { m: 86, side: "R", a: "1J",        b: "2H" },
+    { m: 87, side: "R", a: "1K",        b: "3:DEIJL" },
+    { m: 88, side: "L", a: "2D",        b: "2G" }
+  ];
+
+  // Which group-winner slot each Annex C output column feeds (fixed order).
+  var ANNEX_SLOTS = ["1A", "1B", "1D", "1E", "1G", "1I", "1K", "1L"];
+
+  // ===========================================================================
+  // 3. ANNEX C TABLE — 495 combinations. Key = sorted 8-letter group combo,
+  //    value = 8 third-place group letters in ANNEX_SLOTS order.
+  // ===========================================================================
+  var ANNEX_C = {"EFGHIJKL":"EJIFHGLK","DFGHIJKL":"HGIDJFLK","DEGHIJKL":"EJIDHGLK","DEFHIJKL":"EJIDHFLK","DEFGIJKL":"EGIDJFLK","DEFGHJKL":"EGJDHFLK","DEFGHIKL":"EGIDHFLK","DEFGHIJL":"EGJDHFLI","DEFGHIJK":"EGJDHFIK","CFGHIJKL":"HGICJFLK","CEGHIJKL":"EJICHGLK","CEFHIJKL":"EJICHFLK","CEFGIJKL":"EGICJFLK","CEFGHJKL":"EGJCHFLK","CEFGHIKL":"EGICHFLK","CEFGHIJL":"EGJCHFLI","CEFGHIJK":"EGJCHFIK","CDGHIJKL":"HGICJDLK","CDFHIJKL":"CJIDHFLK","CDFGIJKL":"CGIDJFLK","CDFGHJKL":"CGJDHFLK","CDFGHIKL":"CGIDHFLK","CDFGHIJL":"CGJDHFLI","CDFGHIJK":"CGJDHFIK","CDEHIJKL":"EJICHDLK","CDEGIJKL":"EGICJDLK","CDEGHJKL":"EGJCHDLK","CDEGHIKL":"EGICHDLK","CDEGHIJL":"EGJCHDLI","CDEGHIJK":"EGJCHDIK","CDEFIJKL":"CJEDIFLK","CDEFHJKL":"CJEDHFLK","CDEFHIKL":"CEIDHFLK","CDEFHIJL":"CJEDHFLI","CDEFHIJK":"CJEDHFIK","CDEFGJKL":"CGEDJFLK","CDEFGIKL":"CGEDIFLK","CDEFGIJL":"CGEDJFLI","CDEFGIJK":"CGEDJFIK","CDEFGHKL":"CGEDHFLK","CDEFGHJL":"CGJDHFLE","CDEFGHJK":"CGJDHFEK","CDEFGHIL":"CGEDHFLI","CDEFGHIK":"CGEDHFIK","CDEFGHIJ":"CGJDHFEI","BFGHIJKL":"HJBFIGLK","BEGHIJKL":"EJIBHGLK","BEFHIJKL":"EJBFIHLK","BEFGIJKL":"EJBFIGLK","BEFGHJKL":"EJBFHGLK","BEFGHIKL":"EGBFIHLK","BEFGHIJL":"EJBFHGLI","BEFGHIJK":"EJBFHGIK","BDGHIJKL":"HJBDIGLK","BDFHIJKL":"HJBDIFLK","BDFGIJKL":"IGBDJFLK","BDFGHJKL":"HGBDJFLK","BDFGHIKL":"HGBDIFLK","BDFGHIJL":"HGBDJFLI","BDFGHIJK":"HGBDJFIK","BDEHIJKL":"EJBDIHLK","BDEGIJKL":"EJBDIGLK","BDEGHJKL":"EJBDHGLK","BDEGHIKL":"EGBDIHLK","BDEGHIJL":"EJBDHGLI","BDEGHIJK":"EJBDHGIK","BDEFIJKL":"EJBDIFLK","BDEFHJKL":"EJBDHFLK","BDEFHIKL":"EIBDHFLK","BDEFHIJL":"EJBDHFLI","BDEFHIJK":"EJBDHFIK","BDEFGJKL":"EGBDJFLK","BDEFGIKL":"EGBDIFLK","BDEFGIJL":"EGBDJFLI","BDEFGIJK":"EGBDJFIK","BDEFGHKL":"EGBDHFLK","BDEFGHJL":"HGBDJFLE","BDEFGHJK":"HGBDJFEK","BDEFGHIL":"EGBDHFLI","BDEFGHIK":"EGBDHFIK","BDEFGHIJ":"HGBDJFEI","BCGHIJKL":"HJBCIGLK","BCFHIJKL":"HJBCIFLK","BCFGIJKL":"IGBCJFLK","BCFGHJKL":"HGBCJFLK","BCFGHIKL":"HGBCIFLK","BCFGHIJL":"HGBCJFLI","BCFGHIJK":"HGBCJFIK","BCEHIJKL":"EJBCIHLK","BCEGIJKL":"EJBCIGLK","BCEGHJKL":"EJBCHGLK","BCEGHIKL":"EGBCIHLK","BCEGHIJL":"EJBCHGLI","BCEGHIJK":"EJBCHGIK","BCEFIJKL":"EJBCIFLK","BCEFHJKL":"EJBCHFLK","BCEFHIKL":"EIBCHFLK","BCEFHIJL":"EJBCHFLI","BCEFHIJK":"EJBCHFIK","BCEFGJKL":"EGBCJFLK","BCEFGIKL":"EGBCIFLK","BCEFGIJL":"EGBCJFLI","BCEFGIJK":"EGBCJFIK","BCEFGHKL":"EGBCHFLK","BCEFGHJL":"HGBCJFLE","BCEFGHJK":"HGBCJFEK","BCEFGHIL":"EGBCHFLI","BCEFGHIK":"EGBCHFIK","BCEFGHIJ":"HGBCJFEI","BCDHIJKL":"HJBCIDLK","BCDGIJKL":"IGBCJDLK","BCDGHJKL":"HGBCJDLK","BCDGHIKL":"HGBCIDLK","BCDGHIJL":"HGBCJDLI","BCDGHIJK":"HGBCJDIK","BCDFIJKL":"CJBDIFLK","BCDFHJKL":"CJBDHFLK","BCDFHIKL":"CIBDHFLK","BCDFHIJL":"CJBDHFLI","BCDFHIJK":"CJBDHFIK","BCDFGJKL":"CGBDJFLK","BCDFGIKL":"CGBDIFLK","BCDFGIJL":"CGBDJFLI","BCDFGIJK":"CGBDJFIK","BCDFGHKL":"CGBDHFLK","BCDFGHJL":"CGBDHFLJ","BCDFGHJK":"HGBCJFDK","BCDFGHIL":"CGBDHFLI","BCDFGHIK":"CGBDHFIK","BCDFGHIJ":"HGBCJFDI","BCDEIJKL":"EJBCIDLK","BCDEHJKL":"EJBCHDLK","BCDEHIKL":"EIBCHDLK","BCDEHIJL":"EJBCHDLI","BCDEHIJK":"EJBCHDIK","BCDEGJKL":"EGBCJDLK","BCDEGIKL":"EGBCIDLK","BCDEGIJL":"EGBCJDLI","BCDEGIJK":"EGBCJDIK","BCDEGHKL":"EGBCHDLK","BCDEGHJL":"HGBCJDLE","BCDEGHJK":"HGBCJDEK","BCDEGHIL":"EGBCHDLI","BCDEGHIK":"EGBCHDIK","BCDEGHIJ":"HGBCJDEI","BCDEFJKL":"CJBDEFLK","BCDEFIKL":"CEBDIFLK","BCDEFIJL":"CJBDEFLI","BCDEFIJK":"CJBDEFIK","BCDEFHKL":"CEBDHFLK","BCDEFHJL":"CJBDHFLE","BCDEFHJK":"CJBDHFEK","BCDEFHIL":"CEBDHFLI","BCDEFHIK":"CEBDHFIK","BCDEFHIJ":"CJBDHFEI","BCDEFGKL":"CGBDEFLK","BCDEFGJL":"CGBDJFLE","BCDEFGJK":"CGBDJFEK","BCDEFGIL":"CGBDEFLI","BCDEFGIK":"CGBDEFIK","BCDEFGIJ":"CGBDJFEI","BCDEFGHL":"CGBDHFLE","BCDEFGHK":"CGBDHFEK","BCDEFGHJ":"HGBCJFDE","BCDEFGHI":"CGBDHFEI","AFGHIJKL":"HJIFAGLK","AEGHIJKL":"EJIAHGLK","AEFHIJKL":"EJIFAHLK","AEFGIJKL":"EJIFAGLK","AEFGHJKL":"EGJFAHLK","AEFGHIKL":"EGIFAHLK","AEFGHIJL":"EGJFAHLI","AEFGHIJK":"EGJFAHIK","ADGHIJKL":"HJIDAGLK","ADFHIJKL":"HJIDAFLK","ADFGIJKL":"IGJDAFLK","ADFGHJKL":"HGJDAFLK","ADFGHIKL":"HGIDAFLK","ADFGHIJL":"HGJDAFLI","ADFGHIJK":"HGJDAFIK","ADEHIJKL":"EJIDAHLK","ADEGIJKL":"EJIDAGLK","ADEGHJKL":"EGJDAHLK","ADEGHIKL":"EGIDAHLK","ADEGHIJL":"EGJDAHLI","ADEGHIJK":"EGJDAHIK","ADEFIJKL":"EJIDAFLK","ADEFHJKL":"HJEDAFLK","ADEFHIKL":"HEIDAFLK","ADEFHIJL":"HJEDAFLI","ADEFHIJK":"HJEDAFIK","ADEFGJKL":"EGJDAFLK","ADEFGIKL":"EGIDAFLK","ADEFGIJL":"EGJDAFLI","ADEFGIJK":"EGJDAFIK","ADEFGHKL":"HGEDAFLK","ADEFGHJL":"HGJDAFLE","ADEFGHJK":"HGJDAFEK","ADEFGHIL":"HGEDAFLI","ADEFGHIK":"HGEDAFIK","ADEFGHIJ":"HGJDAFEI","ACGHIJKL":"HJICAGLK","ACFHIJKL":"HJICAFLK","ACFGIJKL":"IGJCAFLK","ACFGHJKL":"HGJCAFLK","ACFGHIKL":"HGICAFLK","ACFGHIJL":"HGJCAFLI","ACFGHIJK":"HGJCAFIK","ACEHIJKL":"EJICAHLK","ACEGIJKL":"EJICAGLK","ACEGHJKL":"EGJCAHLK","ACEGHIKL":"EGICAHLK","ACEGHIJL":"EGJCAHLI","ACEGHIJK":"EGJCAHIK","ACEFIJKL":"EJICAFLK","ACEFHJKL":"HJECAFLK","ACEFHIKL":"HEICAFLK","ACEFHIJL":"HJECAFLI","ACEFHIJK":"HJECAFIK","ACEFGJKL":"EGJCAFLK","ACEFGIKL":"EGICAFLK","ACEFGIJL":"EGJCAFLI","ACEFGIJK":"EGJCAFIK","ACEFGHKL":"HGECAFLK","ACEFGHJL":"HGJCAFLE","ACEFGHJK":"HGJCAFEK","ACEFGHIL":"HGECAFLI","ACEFGHIK":"HGECAFIK","ACEFGHIJ":"HGJCAFEI","ACDHIJKL":"HJICADLK","ACDGIJKL":"IGJCADLK","ACDGHJKL":"HGJCADLK","ACDGHIKL":"HGICADLK","ACDGHIJL":"HGJCADLI","ACDGHIJK":"HGJCADIK","ACDFIJKL":"CJIDAFLK","ACDFHJKL":"HJFCADLK","ACDFHIKL":"HFICADLK","ACDFHIJL":"HJFCADLI","ACDFHIJK":"HJFCADIK","ACDFGJKL":"CGJDAFLK","ACDFGIKL":"CGIDAFLK","ACDFGIJL":"CGJDAFLI","ACDFGIJK":"CGJDAFIK","ACDFGHKL":"HGFCADLK","ACDFGHJL":"CGJDAFLH","ACDFGHJK":"HGJCAFDK","ACDFGHIL":"HGFCADLI","ACDFGHIK":"HGFCADIK","ACDFGHIJ":"HGJCAFDI","ACDEIJKL":"EJICADLK","ACDEHJKL":"HJECADLK","ACDEHIKL":"HEICADLK","ACDEHIJL":"HJECADLI","ACDEHIJK":"HJECADIK","ACDEGJKL":"EGJCADLK","ACDEGIKL":"EGICADLK","ACDEGIJL":"EGJCADLI","ACDEGIJK":"EGJCADIK","ACDEGHKL":"HGECADLK","ACDEGHJL":"HGJCADLE","ACDEGHJK":"HGJCADEK","ACDEGHIL":"HGECADLI","ACDEGHIK":"HGECADIK","ACDEGHIJ":"HGJCADEI","ACDEFJKL":"CJEDAFLK","ACDEFIKL":"CEIDAFLK","ACDEFIJL":"CJEDAFLI","ACDEFIJK":"CJEDAFIK","ACDEFHKL":"HEFCADLK","ACDEFHJL":"HJFCADLE","ACDEFHJK":"HJECAFDK","ACDEFHIL":"HEFCADLI","ACDEFHIK":"HEFCADIK","ACDEFHIJ":"HJECAFDI","ACDEFGKL":"CGEDAFLK","ACDEFGJL":"CGJDAFLE","ACDEFGJK":"CGJDAFEK","ACDEFGIL":"CGEDAFLI","ACDEFGIK":"CGEDAFIK","ACDEFGIJ":"CGJDAFEI","ACDEFGHL":"HGFCADLE","ACDEFGHK":"HGECAFDK","ACDEFGHJ":"HGJCAFDE","ACDEFGHI":"HGECAFDI","ABGHIJKL":"HJBAIGLK","ABFHIJKL":"HJBAIFLK","ABFGIJKL":"IJBFAGLK","ABFGHJKL":"HJBFAGLK","ABFGHIKL":"HGBAIFLK","ABFGHIJL":"HJBFAGLI","ABFGHIJK":"HJBFAGIK","ABEHIJKL":"EJBAIHLK","ABEGIJKL":"EJBAIGLK","ABEGHJKL":"EJBAHGLK","ABEGHIKL":"EGBAIHLK","ABEGHIJL":"EJBAHGLI","ABEGHIJK":"EJBAHGIK","ABEFIJKL":"EJBAIFLK","ABEFHJKL":"EJBFAHLK","ABEFHIKL":"EIBFAHLK","ABEFHIJL":"EJBFAHLI","ABEFHIJK":"EJBFAHIK","ABEFGJKL":"EJBFAGLK","ABEFGIKL":"EGBAIFLK","ABEFGIJL":"EJBFAGLI","ABEFGIJK":"EJBFAGIK","ABEFGHKL":"EGBFAHLK","ABEFGHJL":"HJBFAGLE","ABEFGHJK":"HJBFAGEK","ABEFGHIL":"EGBFAHLI","ABEFGHIK":"EGBFAHIK","ABEFGHIJ":"HJBFAGEI","ABDHIJKL":"IJBDAHLK","ABDGIJKL":"IJBDAGLK","ABDGHJKL":"HJBDAGLK","ABDGHIKL":"IGBDAHLK","ABDGHIJL":"HJBDAGLI","ABDGHIJK":"HJBDAGIK","ABDFIJKL":"IJBDAFLK","ABDFHJKL":"HJBDAFLK","ABDFHIKL":"HIBDAFLK","ABDFHIJL":"HJBDAFLI","ABDFHIJK":"HJBDAFIK","ABDFGJKL":"FJBDAGLK","ABDFGIKL":"IGBDAFLK","ABDFGIJL":"FJBDAGLI","ABDFGIJK":"FJBDAGIK","ABDFGHKL":"HGBDAFLK","ABDFGHJL":"HGBDAFLJ","ABDFGHJK":"HGBDAFJK","ABDFGHIL":"HGBDAFLI","ABDFGHIK":"HGBDAFIK","ABDFGHIJ":"HGBDAFIJ","ABDEIJKL":"EJBAIDLK","ABDEHJKL":"EJBDAHLK","ABDEHIKL":"EIBDAHLK","ABDEHIJL":"EJBDAHLI","ABDEHIJK":"EJBDAHIK","ABDEGJKL":"EJBDAGLK","ABDEGIKL":"EGBAIDLK","ABDEGIJL":"EJBDAGLI","ABDEGIJK":"EJBDAGIK","ABDEGHKL":"EGBDAHLK","ABDEGHJL":"HJBDAGLE","ABDEGHJK":"HJBDAGEK","ABDEGHIL":"EGBDAHLI","ABDEGHIK":"EGBDAHIK","ABDEGHIJ":"HJBDAGEI","ABDEFJKL":"EJBDAFLK","ABDEFIKL":"EIBDAFLK","ABDEFIJL":"EJBDAFLI","ABDEFIJK":"EJBDAFIK","ABDEFHKL":"HEBDAFLK","ABDEFHJL":"HJBDAFLE","ABDEFHJK":"HJBDAFEK","ABDEFHIL":"HEBDAFLI","ABDEFHIK":"HEBDAFIK","ABDEFHIJ":"HJBDAFEI","ABDEFGKL":"EGBDAFLK","ABDEFGJL":"EGBDAFLJ","ABDEFGJK":"EGBDAFJK","ABDEFGIL":"EGBDAFLI","ABDEFGIK":"EGBDAFIK","ABDEFGIJ":"EGBDAFIJ","ABDEFGHL":"HGBDAFLE","ABDEFGHK":"HGBDAFEK","ABDEFGHJ":"HGBDAFEJ","ABDEFGHI":"HGBDAFEI","ABCHIJKL":"IJBCAHLK","ABCGIJKL":"IJBCAGLK","ABCGHJKL":"HJBCAGLK","ABCGHIKL":"IGBCAHLK","ABCGHIJL":"HJBCAGLI","ABCGHIJK":"HJBCAGIK","ABCFIJKL":"IJBCAFLK","ABCFHJKL":"HJBCAFLK","ABCFHIKL":"HIBCAFLK","ABCFHIJL":"HJBCAFLI","ABCFHIJK":"HJBCAFIK","ABCFGJKL":"CJBFAGLK","ABCFGIKL":"IGBCAFLK","ABCFGIJL":"CJBFAGLI","ABCFGIJK":"CJBFAGIK","ABCFGHKL":"HGBCAFLK","ABCFGHJL":"HGBCAFLJ","ABCFGHJK":"HGBCAFJK","ABCFGHIL":"HGBCAFLI","ABCFGHIK":"HGBCAFIK","ABCFGHIJ":"HGBCAFIJ","ABCEIJKL":"EJBAICLK","ABCEHJKL":"EJBCAHLK","ABCEHIKL":"EIBCAHLK","ABCEHIJL":"EJBCAHLI","ABCEHIJK":"EJBCAHIK","ABCEGJKL":"EJBCAGLK","ABCEGIKL":"EGBAICLK","ABCEGIJL":"EJBCAGLI","ABCEGIJK":"EJBCAGIK","ABCEGHKL":"EGBCAHLK","ABCEGHJL":"HJBCAGLE","ABCEGHJK":"HJBCAGEK","ABCEGHIL":"EGBCAHLI","ABCEGHIK":"EGBCAHIK","ABCEGHIJ":"HJBCAGEI","ABCEFJKL":"EJBCAFLK","ABCEFIKL":"EIBCAFLK","ABCEFIJL":"EJBCAFLI","ABCEFIJK":"EJBCAFIK","ABCEFHKL":"HEBCAFLK","ABCEFHJL":"HJBCAFLE","ABCEFHJK":"HJBCAFEK","ABCEFHIL":"HEBCAFLI","ABCEFHIK":"HEBCAFIK","ABCEFHIJ":"HJBCAFEI","ABCEFGKL":"EGBCAFLK","ABCEFGJL":"EGBCAFLJ","ABCEFGJK":"EGBCAFJK","ABCEFGIL":"EGBCAFLI","ABCEFGIK":"EGBCAFIK","ABCEFGIJ":"EGBCAFIJ","ABCEFGHL":"HGBCAFLE","ABCEFGHK":"HGBCAFEK","ABCEFGHJ":"HGBCAFEJ","ABCEFGHI":"HGBCAFEI","ABCDIJKL":"IJBCADLK","ABCDHJKL":"HJBCADLK","ABCDHIKL":"HIBCADLK","ABCDHIJL":"HJBCADLI","ABCDHIJK":"HJBCADIK","ABCDGJKL":"CJBDAGLK","ABCDGIKL":"IGBCADLK","ABCDGIJL":"CJBDAGLI","ABCDGIJK":"CJBDAGIK","ABCDGHKL":"HGBCADLK","ABCDGHJL":"HGBCADLJ","ABCDGHJK":"HGBCADJK","ABCDGHIL":"HGBCADLI","ABCDGHIK":"HGBCADIK","ABCDGHIJ":"HGBCADIJ","ABCDFJKL":"CJBDAFLK","ABCDFIKL":"CIBDAFLK","ABCDFIJL":"CJBDAFLI","ABCDFIJK":"CJBDAFIK","ABCDFHKL":"HFBCADLK","ABCDFHJL":"CJBDAFLH","ABCDFHJK":"HJBCAFDK","ABCDFHIL":"HFBCADLI","ABCDFHIK":"HFBCADIK","ABCDFHIJ":"HJBCAFDI","ABCDFGKL":"CGBDAFLK","ABCDFGJL":"CGBDAFLJ","ABCDFGJK":"CGBDAFJK","ABCDFGIL":"CGBDAFLI","ABCDFGIK":"CGBDAFIK","ABCDFGIJ":"CGBDAFIJ","ABCDFGHL":"CGBDAFLH","ABCDFGHK":"HGBCAFDK","ABCDFGHJ":"HGBCAFDJ","ABCDFGHI":"HGBCAFDI","ABCDEJKL":"EJBCADLK","ABCDEIKL":"EIBCADLK","ABCDEIJL":"EJBCADLI","ABCDEIJK":"EJBCADIK","ABCDEHKL":"HEBCADLK","ABCDEHJL":"HJBCADLE","ABCDEHJK":"HJBCADEK","ABCDEHIL":"HEBCADLI","ABCDEHIK":"HEBCADIK","ABCDEHIJ":"HJBCADEI","ABCDEGKL":"EGBCADLK","ABCDEGJL":"EGBCADLJ","ABCDEGJK":"EGBCADJK","ABCDEGIL":"EGBCADLI","ABCDEGIK":"EGBCADIK","ABCDEGIJ":"EGBCADIJ","ABCDEGHL":"HGBCADLE","ABCDEGHK":"HGBCADEK","ABCDEGHJ":"HGBCADEJ","ABCDEGHI":"HGBCADEI","ABCDEFKL":"CEBDAFLK","ABCDEFJL":"CJBDAFLE","ABCDEFJK":"CJBDAFEK","ABCDEFIL":"CEBDAFLI","ABCDEFIK":"CEBDAFIK","ABCDEFIJ":"CJBDAFEI","ABCDEFHL":"HFBCADLE","ABCDEFHK":"HEBCAFDK","ABCDEFHJ":"HJBCAFDE","ABCDEFHI":"HEBCAFDI","ABCDEFGL":"CGBDAFLE","ABCDEFGK":"CGBDAFEK","ABCDEFGJ":"CGBDAFEJ","ABCDEFGI":"CGBDAFEI","ABCDEFGH":"HGBCAFDE"};
+
+  // ===========================================================================
+  // 4. ENGINE
+  // ===========================================================================
+  function sortGroup(teams) {
+    // Group ranking: points, then GD, then GF (head-to-head needs match data;
+    // most standings feeds pre-apply it, so we respect incoming order on ties).
+    return teams.slice().sort(function (x, y) {
+      return (y.pts - x.pts) || (y.gd - x.gd) || (y.gf - x.gf);
+    });
+  }
+
+  function computeBracket(rawStandings) {
+    var groups = adaptStandings(rawStandings);
+    var byLetter = {};
+    var thirds = [];
+    var allComplete = true;
+
+    groups.forEach(function (g) {
+      var sorted = sortGroup(g.teams);
+      byLetter[g.group] = {
+        "1": sorted[0] || null,
+        "2": sorted[1] || null,
+        "3": sorted[2] || null
+      };
+      // a group is "final" only when every team has played all 3 games
+      var done = g.teams.length === 4 && g.teams.every(function (t) {
+        return (t.played || 0) >= 3;
+      });
+      if (!done) allComplete = false;
+      if (sorted[2]) {
+        thirds.push({
+          group: g.group,
+          team: sorted[2].name,
+          pts: sorted[2].pts,
+          gd: sorted[2].gd,
+          gf: sorted[2].gf,
+          groupComplete: done
+        });
+      }
+    });
+
+    // Rank third-place teams: pts, GD, GF.
+    var rankedThirds = thirds.slice().sort(function (x, y) {
+      return (y.pts - x.pts) || (y.gd - x.gd) || (y.gf - x.gf);
+    });
+    var best8 = rankedThirds.slice(0, 8);
+    var best8Letters = best8.map(function (t) { return t.group; }).sort();
+
+    // Resolve third-place slot assignments only when we have a full set of 8
+    // AND every group is complete (matching FIFA: the bracket locks June 27).
+    var thirdAssign = null; // map: winnerSlot -> third group letter
+    var locked = allComplete && best8.length === 8;
+    if (locked) {
+      var key = best8Letters.join("");
+      var row = ANNEX_C[key];
+      if (row) {
+        thirdAssign = {};
+        ANNEX_SLOTS.forEach(function (slot, i) {
+          thirdAssign[slot] = row[i]; // letter
+        });
+      }
+    }
+
+    function resolve(code) {
+      // returns { label, team, settled }
+      if (code.charAt(0) === "3") {
+        // third-place placeholder like "3:ABCDF"
+        var setStr = code.split(":")[1];
+        if (thirdAssign) {
+          // find which group-winner slot this match belongs to — handled by caller
+          return null; // resolved per-match below
+        }
+        return { label: "3rd " + setStr.split("").join("/"), team: null, settled: false };
+      }
+      var pos = code.charAt(0);     // "1" or "2"
+      var letter = code.charAt(1);  // group letter
+      var slot = byLetter[letter];
+      var t = slot ? slot[pos] : null;
+      var posWord = pos === "1" ? "Winner" : "Runner-up";
+      return {
+        code: pos + letter,            // e.g. "1A", "2B"
+        kind: "wr",                    // winner-or-runnerup
+        label: posWord + " " + letter,
+        team: t ? t.name : null,
+        settled: !!t
+      };
+    }
+
+    var out = MATCHES.map(function (match) {
+      var a = resolve(match.a);
+      var b;
+      if (match.b.charAt(0) === "3") {
+        if (thirdAssign && thirdAssign[match.a]) {
+          var letter = thirdAssign[match.a];
+          var t = byLetter[letter] ? byLetter[letter]["3"] : null;
+          b = {
+            code: "3" + letter,
+            kind: "third",
+            label: "3rd " + letter,
+            team: t ? t.name : null,
+            settled: !!t
+          };
+        } else {
+          var setStr = match.b.split(":")[1];
+          b = {
+            code: "3·" + setStr,
+            kind: "third",
+            label: "3rd " + setStr.split("").join("/"),
+            team: null,
+            settled: false
+          };
+        }
+      } else {
+        b = resolve(match.b);
+      }
+      return {
+        match: match.m,
+        side: match.side,
+        home: a,
+        away: b
+      };
+    });
+
+    return {
+      matches: out,
+      thirdsRanked: rankedThirds,
+      best8: best8,
+      locked: locked,          // true once thirds are placed into exact slots
+      allGroupsComplete: allComplete
+    };
+  }
+
+  global.WCBracket = {
+    compute: computeBracket,
+    adaptStandings: adaptStandings,
+    MATCHES: MATCHES,
+    ANNEX_C: ANNEX_C
+  };
+
+})(typeof window !== "undefined" ? window : this);
+
+</script>
+<script>
+/* ----------------------------------------------------------------------------
+ * Live data only. Reads your getStandings function, computes the Round of 32
+ * "as it stands", and refreshes every 30 minutes. No hardcoded teams.
+ * -------------------------------------------------------------------------- */
+
+// Your Netlify data function (NOT the /standings page, which returns HTML).
+const STANDINGS_URL = "/.netlify/functions/getStandings";
+const REFRESH_MS = 30 * 60 * 1000; // 30 minutes
+
+const VENUES = {
+  73:"Los Angeles",74:"Boston",75:"Guadalajara",76:"Monterrey",77:"East Rutherford",
+  78:"Arlington",79:"Mexico City",80:"Vancouver",81:"Santa Clara",82:"Seattle",
+  83:"Philadelphia",84:"Houston",85:"Atlanta",86:"Miami",87:"Kansas City",88:"Dallas"
+};
+
+function teamRow(slot){
+  const isThird = slot.kind === "third";
+  const cls = isThird ? "third" : (slot.settled ? "settled" : "");
+  const display = slot.team
+    ? `<span class="name">${slot.team}</span>`
+    : `<span class="name placeholder">${slot.label}</span>`;
+  return `<div class="team ${cls}">
+    <span class="seed">${slot.code}</span>
+    ${display}
+  </div>`;
+}
+
+function tieCard(m){
+  const hasThird = m.home.kind === "third" || m.away.kind === "third";
+  return `<div class="tie ${hasThird ? "has-third":""}">
+    <div class="tie-head">
+      <span class="tie-no">Match ${m.match}</span>
+      <span class="tie-venue">${VENUES[m.match]||""}</span>
+    </div>
+    ${teamRow(m.home)}
+    ${teamRow(m.away)}
+  </div>`;
+}
+
+function renderThirds(ranked){
+  const body = document.getElementById("thirdsBody");
+  if (!ranked.length){ body.innerHTML = `<p class="sub">No third-place data yet.</p>`; return; }
+  let html = "";
+  ranked.forEach((t,i)=>{
+    const rank = i+1, inCut = rank<=8;
+    html += `<div class="trow ${inCut?"in":"cut"}">
+      <span class="rk">${rank}</span>
+      <span class="tm">${t.team} <span class="gp">\u00b7 Grp ${t.group}</span></span>
+      <span class="stat">${t.pts} pts</span>
+      <span class="stat">GD ${t.gd>=0?"+":""}${t.gd}</span>
+      <span class="stat">GF ${t.gf}</span>
+    </div>`;
+    if (rank===8) html += `<div class="cutline"></div>`;
+  });
+  body.innerHTML = html;
+}
+
+function render(standings){
+  const res = WCBracket.compute(standings);
+  const L = res.matches.filter(m=>m.side==="L");
+  const R = res.matches.filter(m=>m.side==="R");
+  document.getElementById("colL").innerHTML = `<h2>Left half</h2>` + L.map(tieCard).join("");
+  document.getElementById("colR").innerHTML = `<h2>Right half</h2>` + R.map(tieCard).join("");
+  renderThirds(res.thirdsRanked);
+
+  const st = document.getElementById("status");
+  const txt = document.getElementById("statusText");
+  st.classList.remove("error");
+  if (res.locked){
+    st.classList.add("locked");
+    txt.textContent = "Bracket locked \u2014 third-place teams placed";
+  } else {
+    st.classList.remove("locked");
+    txt.textContent = res.allGroupsComplete
+      ? "Resolving third-place combination\u2026"
+      : "If the group stage ended now \u00b7 updates every 30 min";
+  }
+}
+
+function showError(msg){
+  const st = document.getElementById("status");
+  const txt = document.getElementById("statusText");
+  st.classList.add("error"); st.classList.remove("locked");
+  txt.textContent = msg;
+}
+
+async function refresh(){
+  try {
+    const r = await fetch(STANDINGS_URL, { headers: { "Accept":"application/json" } });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    render(data);
+  } catch (e) {
+    showError("Couldn\u2019t load standings (" + e.message + ") \u2014 retrying next cycle");
+    console.error("bracket: standings fetch failed", e);
+  }
+}
+
+refresh();
+setInterval(refresh, REFRESH_MS);
+</script>
+</body>
+</html>
